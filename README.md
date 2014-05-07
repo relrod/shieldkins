@@ -16,7 +16,10 @@ The DNS name is **shieldkins.elrod.me**.
 Example of usage:
 
 ```html
-<img src="http://shieldkins.elrod.me/fedora/fedora-mobile" alt="Fedora Mobile Status" />
+<a href="http://jenkins.cloud.fedoraproject.org/job/fedora-mobile/lastBuild/">
+<img src="http://shieldkins.elrod.me/fedora/fedora-mobile"
+     alt="Fedora Mobile Status" />
+</a>
 ```
 
 where **fedora** above is the Jenkins shortname, and **fedora-mobile** is the
