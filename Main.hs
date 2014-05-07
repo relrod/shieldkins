@@ -7,6 +7,7 @@ import Data.ByteString.Lazy
 import Data.Monoid (mconcat)
 import qualified Data.Text as T
 import qualified Network.Wreq as W
+import System.Environment (getEnv)
 import Web.Scotty
 
 data BuildResult = Success | Failure | Aborted | NotBuilt | Unstable
@@ -42,21 +43,23 @@ getShield n = do
     colorForResult Unstable = "blue"
 
 main :: IO ()
-main = scotty 3000 $ do
-  get "/:jenkins/:project" $ do
-    jenkins <- param "jenkins"
-    case jenkinsUrl jenkins of
-      Nothing -> do
-        text $
-          mconcat [ "That is not a valid jenkins key. To add a jenkins "
-                  , "instance, see https://github.com/CodeBlock/shieldkins/"
-                  ]
-      Just u -> do
-        project <- param "project"
-        r <- liftIO $ W.get $ u ++ "/job/" ++ project ++ "/lastBuild/api/json"
-        let s = fmap getShield (getBuildResult (r ^. W.responseBody . key "result" . _String))
-        case s of
-          Nothing -> text "Invalid result received from Jenkins."
-          Just iobs -> do
-            setHeader "Content-Type" "image/svg+xml"
-            liftIO iobs >>= raw
+main = do
+  port <- fmap read $ getEnv "PORT"
+  scotty port $ do
+    get "/:jenkins/:project" $ do
+      jenkins <- param "jenkins"
+      case jenkinsUrl jenkins of
+        Nothing -> do
+          text $
+            mconcat [ "That is not a valid jenkins key. To add a jenkins "
+                    , "instance, see https://github.com/CodeBlock/shieldkins/"
+                    ]
+        Just u -> do
+          project <- param "project"
+          r <- liftIO $ W.get $ u ++ "/job/" ++ project ++ "/lastBuild/api/json"
+          let s = fmap getShield (getBuildResult (r ^. W.responseBody . key "result" . _String))
+          case s of
+            Nothing -> text "Invalid result received from Jenkins."
+            Just iobs -> do
+              setHeader "Content-Type" "image/svg+xml"
+              liftIO iobs >>= raw
